@@ -7,8 +7,7 @@ import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Loader from 'components/Loader';
 import {Container} from 'App.styled';
-
-import { fetchImages } from "components/API";
+import { fetchImages }from "api/API";
 
 class App extends Component {
   state = {
@@ -18,71 +17,68 @@ class App extends Component {
     showModal: false,
     error: null,
     status: 'idle',
-    total: 0,
-    largeImage: '',
+    total: null,
+    largeImage: null,
   };
 
-   componentDidUpdate = (_, prevState) => {
+  async componentDidUpdate(_, prevState) {
     const { searchQuery, page } = this.state;
 
-    if (prevState.searchQuery !== searchQuery) {
-      this.setState({
-        images: [],
-        status: 'pending',
-        page: 1,
-      });
-      this.getImages();
-    }
-    if (page !== prevState.page && page !== 1) {
-      this.setState({
-        status: 'pending',
-      });
-      this.getImages();
-    }
-  };
+    if (!searchQuery) return;
 
-  submitProps = searchQuery => {
-    this.setState({
-      searchQuery,
-      images: [],
-      page: 1,
-    });
-  };
+    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
+      try {
+        this.setState({ status: 'pending' });
 
-  async getImages() {
-    const { searchQuery, page } = this.state;
+        const { totalHits, hits } = await fetchImages(searchQuery, page);
 
-    try {
-      const imagesGallery = await fetchImages(searchQuery, page);
+        if (hits.length === 0) {
+          this.setState({
+            status: 'idle',
+          });
+          return toast.error(`Not found images: ${searchQuery}`);
+        }
 
-      if (imagesGallery.hits.length === 0) {
-        this.setState({
-          status: 'idle',
+        if (page === 1)
+          toast.success(`We found ${totalHits} images`);
+
+        const photos = hits.map(({ id, webformatURL, largeImageURL, tags }) => {
+          return {
+            id,
+            webformatURL,
+            largeImageURL,
+            tags,
+          };
         });
-        return toast.error(`${searchQuery} not found`);
-      }
 
-      this.setState(prevState => ({
-        images: [...prevState.images, ...imagesGallery.hits],
-        status: 'resolved',
-        total: imagesGallery.totalHits,
-      }));
-    } catch (error) {
-      this.setState({
-        error,
-        status: 'rejected',
-      });
+        this.setState(prevState => ({
+          images: [...prevState.images, ...photos],
+          status: 'resolved',
+          total: totalHits,
+        }));
+      } catch (error) {
+        this.setState({
+          error,
+          status: 'rejected',
+        });
+      }
     }
   }
 
-  loadMoreButtonClick = () => {
-    this.setState(({ page }) => {
-      return {
-        page: page + 1,
-      };
-    });
+  resetStates = () => {
+    this.setState({ photoList: [], page: 1, error: null });
   };
 
+ handleSearch = value => {
+    this.setState({ searchQuery: value });
+    this.resetStates();
+  };
+
+  handlePagination = () => {
+    this.setState(({ page }) => ({ page: page + 1 }));
+  };
+
+  
   toggleModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -96,24 +92,25 @@ class App extends Component {
 
   render() {
     const { images, showModal, status, total, largeImage, error } = this.state;
-    const { submitProps, toggleModal, loadMoreButtonClick } = this;
+    const { handleSearch, handlePagination, toggleModal, onClickImage} = this;
 
     return (
       <Container> 
-        <Searchbar onSubmit={submitProps} />
-        {status === 'resolved' && (
-          <ImageGallery images={images} onClick={this.onClickImage} />
-        )}
-       {status === 'pending' && (
+        <Searchbar onSubmit={handleSearch} />
+        {status === 'pending' && (
             <Loader />
         )} 
+        {status === 'resolved' && (
+          <ImageGallery images={images} onClick={onClickImage} />
+        )}
+       {status === 'rejected' && <p>{error.message}</p>}
         {showModal && (
           <Modal onClose={toggleModal}>
             <img src={largeImage} alt={''} />
           </Modal>
         )}
         {images.length > 0 && images.length < total && (
-          <Button onClick={loadMoreButtonClick} />
+          <Button onClick={handlePagination} />
         )}
         <ToastContainer autoClose={2000} />
       </Container>

@@ -13,3 +13,4 @@ export const fetchImages = async (searchQuery, page) => {
   const { data } = await axios.get(url);
   return data;
 }; 
+
