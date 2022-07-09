@@ -17,13 +17,14 @@ class Searchbar extends PureComponent {
 
   handleSubmit = event => {
       event.preventDefault();
-      const { searchQuery } = this.state;
+    const { searchQuery } = this.state;
+    const { onSubmit } = this.props;
       
     if (searchQuery.trim() === '') {
           toast.warn('Please enter search query');  
           return;    
     }
-      this.props.onSubmit(searchQuery.trim());
+      onSubmit(searchQuery);
       this.reset();
   };
 

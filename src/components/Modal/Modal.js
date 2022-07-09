@@ -28,7 +28,9 @@ class Modal extends PureComponent {
 
        return createPortal(
          <Overlay onClick={handleOverlayClick}>
-           <ModalWindow>{children}</ModalWindow>
+           <ModalWindow>
+            {children}
+           </ModalWindow>
          </Overlay>,
          modalRoot
        );
@@ -38,6 +40,5 @@ class Modal extends PureComponent {
 export default Modal;
 
 Modal.propTypes = {
-  children: PropTypes.node.isRequired,
   onClose: PropTypes.func.isRequired,
 };

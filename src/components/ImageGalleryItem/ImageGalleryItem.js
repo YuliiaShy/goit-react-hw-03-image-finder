@@ -1,14 +1,15 @@
+import React from 'react';
 import PropTypes from 'prop-types';
 import { Item, Image } from './ImageGalleryItem.styled';
 
-const ImageGalleryItem = ({ webformatURL, alt, onClick }) => (
+const ImageGalleryItem = ({ cardUrl, alt, onClick }) => (
   <Item onClick={onClick}>
-    <Image src={webformatURL} alt={alt}></Image>
+    <Image src={cardUrl} alt={alt} />
   </Item>
 );
 
 ImageGalleryItem.propTypes = {
-  webformatURL: PropTypes.string.isRequired,
+  cardUrl: PropTypes.string.isRequired,
   alt: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
 };

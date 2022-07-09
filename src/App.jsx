@@ -7,7 +7,7 @@ import Button from 'components/Button';
 import Modal from 'components/Modal';
 import Loader from 'components/Loader';
 import {Container} from 'App.styled';
-import { fetchImages }from "api/API";
+import api from "api/API";
 
 class App extends Component {
   state = {
@@ -15,70 +15,72 @@ class App extends Component {
     page: 1,
     images: [],
     showModal: false,
-    error: null,
     status: 'idle',
-    total: null,
-    largeImage: null,
+    total: 0,
+    largeImage: '',
   };
 
-  async componentDidUpdate(_, prevState) {
+  componentDidUpdate = (_, prevState) => {
     const { searchQuery, page } = this.state;
 
-    if (!searchQuery) return;
+    if (prevState.searchQuery !== searchQuery) {
+      this.setState({
+        images: [],
+        status: 'pending',
+        page: 1,
+      });
+      this.getImages();
+    }
+    if (page !== prevState.page && page !== 1) {
+      this.setState({
+        status: 'pending',
+      });
+      this.getImages();
+    }
+  };
 
-    if (prevState.searchQuery !== searchQuery || prevState.page !== page) {
-      try {
-        this.setState({ status: 'pending' });
+  submitSomeProps = searchQuery => {
+    this.setState({
+      searchQuery,
+      images: [],
+      page: 1,
+    });
+  };
 
-        const { totalHits, hits } = await fetchImages(searchQuery, page);
+  async getImages() {
+    const { searchQuery, page } = this.state;
 
-        if (hits.length === 0) {
-          this.setState({
-            status: 'idle',
-          });
-          return toast.error(`Not found images: ${searchQuery}`);
-        }
+    try {
+      const {totalHits, hits} = await api.fetchImages(searchQuery, page);
 
-        if (page === 1)
-          toast.success(`We found ${totalHits} images`);
-
-        const photos = hits.map(({ id, webformatURL, largeImageURL, tags }) => {
-          return {
-            id,
-            webformatURL,
-            largeImageURL,
-            tags,
-          };
-        });
-
-        this.setState(prevState => ({
-          images: [...prevState.images, ...photos],
-          status: 'resolved',
-          total: totalHits,
-        }));
-      } catch (error) {
+      if (hits.length === 0) {
         this.setState({
-          error,
-          status: 'rejected',
+          status: 'idle',
         });
+        return toast.error(`Not found: ${searchQuery} `);
       }
+
+      this.setState(prevState => ({
+        images: [...prevState.images, ...hits],
+        status: 'resolved',
+        total: totalHits,
+      }));
+    } catch (error) {
+      this.setState({
+        error,
+        status: 'rejected',
+      });
     }
   }
 
-  resetStates = () => {
-    this.setState({ photoList: [], page: 1, error: null });
-  };
+  handleLoadMoreButtonClick = () => {
+    this.setState(({ page }) => {
+      return {
+        page: page + 1,
+      };
+    });
+  }; 
 
- handleSearch = value => {
-    this.setState({ searchQuery: value });
-    this.resetStates();
-  };
-
-  handlePagination = () => {
-    this.setState(({ page }) => ({ page: page + 1 }));
-  };
-
-  
   toggleModal = () => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
@@ -91,27 +93,20 @@ class App extends Component {
   };
 
   render() {
-    const { images, showModal, status, total, largeImage, error } = this.state;
-    const { handleSearch, handlePagination, toggleModal, onClickImage} = this;
+    const { images, showModal, status, total, largeImage } = this.state;
+    const { submitSomeProps, toggleModal, handleLoadMoreButtonClick } = this;
+
 
     return (
       <Container> 
-        <Searchbar onSubmit={handleSearch} />
-        {status === 'pending' && (
-            <Loader />
-        )} 
-        {status === 'resolved' && (
-          <ImageGallery images={images} onClick={onClickImage} />
-        )}
-       {status === 'rejected' && <p>{error.message}</p>}
-        {showModal && (
-          <Modal onClose={toggleModal}>
-            <img src={largeImage} alt={''} />
-          </Modal>
-        )}
+        <Searchbar onSubmit={submitSomeProps} />
+        {status === 'pending' && (<Loader /> )} 
+        {status === 'resolved' && (<ImageGallery images={images} onClick={this.onClickImage} />)}
+        {showModal && (<Modal onClose={toggleModal}>
+          <img src={largeImage} alt={''}/>
+        </Modal>)}
         {images.length > 0 && images.length < total && (
-          <Button onClick={handlePagination} />
-        )}
+          <Button onClick={handleLoadMoreButtonClick} /> )}
         <ToastContainer autoClose={2000} />
       </Container>
     );
