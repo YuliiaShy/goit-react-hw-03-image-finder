@@ -68,9 +68,6 @@ scroll.scrollToBottom();
       });
       
     }
-    // if (this.state.images.length > 0) {
-    //   scroll.scrollToBottom();
-    // }
   }
 
 handleSubmitInput = searchQuery => {
@@ -113,7 +110,7 @@ handleSubmitInput = searchQuery => {
         {showModal && (<Modal onClose={toggleModal}>
           <img src={largeImage} alt={''}/>
         </Modal>)}
-        {images.length > 0 && images.length < total && (
+        {status !== 'pending' && images.length > 0 && images.length < total && (
           <Button onClick={handleLoadMoreButtonClick} /> )}
         <ToastContainer autoClose={2000} />
       </Container>
