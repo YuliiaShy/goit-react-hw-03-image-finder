@@ -5,7 +5,7 @@ import { Loaders} from './Loader.styled';
 const Loader = () => (
   <Loaders>
     <Grid
-      color="blue"
+      color="#303f9f"
       height={100}
       width={110}
       ariaLabel="loading"

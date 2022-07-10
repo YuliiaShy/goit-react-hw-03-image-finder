@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { animateScroll as scroll } from 'react-scroll';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Searchbar from 'components/Searchbar';
@@ -18,6 +19,7 @@ class App extends Component {
     status: 'idle',
     total: 0,
     largeImage: '',
+    error: null,
   };
 
   componentDidUpdate = (_, prevState) => {
@@ -36,15 +38,8 @@ class App extends Component {
         status: 'pending',
       });
       this.getImages();
+scroll.scrollToBottom();
     }
-  };
-
-  submitSomeProps = searchQuery => {
-    this.setState({
-      searchQuery,
-      images: [],
-      page: 1,
-    });
   };
 
   async getImages() {
@@ -57,7 +52,8 @@ class App extends Component {
         this.setState({
           status: 'idle',
         });
-        return toast.error(`Not found: ${searchQuery} `);
+        toast.error(`Not found: ${searchQuery} `);
+        return
       }
 
       this.setState(prevState => ({
@@ -70,8 +66,20 @@ class App extends Component {
         error,
         status: 'rejected',
       });
+      
     }
+    // if (this.state.images.length > 0) {
+    //   scroll.scrollToBottom();
+    // }
   }
+
+handleSubmitInput = searchQuery => {
+    this.setState({
+      searchQuery,
+      images: [],
+      page: 1,
+    });
+  };
 
   handleLoadMoreButtonClick = () => {
     this.setState(({ page }) => {
@@ -94,14 +102,14 @@ class App extends Component {
 
   render() {
     const { images, showModal, status, total, largeImage } = this.state;
-    const { submitSomeProps, toggleModal, handleLoadMoreButtonClick } = this;
+    const { handleSubmitInput, toggleModal, handleLoadMoreButtonClick, onClickImage } = this;
 
 
     return (
       <Container> 
-        <Searchbar onSubmit={submitSomeProps} />
+        <Searchbar onSubmit={handleSubmitInput} />
         {status === 'pending' && (<Loader /> )} 
-        {status === 'resolved' && (<ImageGallery images={images} onClick={this.onClickImage} />)}
+        {status === 'resolved' && (<ImageGallery images={images} onClick={onClickImage} />)}
         {showModal && (<Modal onClose={toggleModal}>
           <img src={largeImage} alt={''}/>
         </Modal>)}

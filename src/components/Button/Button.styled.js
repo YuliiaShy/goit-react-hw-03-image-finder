@@ -4,11 +4,11 @@ export const LoadMoreBtn = styled.button`
   padding: 8px 16px;
   margin: 0 auto;
   border-radius: 2px;
-  background-color: #3f51b5;
+  background-color: #68a3e2;
   transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
   text-align: center;
   display: inline-block;
-  color: #fff;
+  color: rgb(245, 248, 40);
   border: 0;
   text-decoration: none;
   cursor: pointer;

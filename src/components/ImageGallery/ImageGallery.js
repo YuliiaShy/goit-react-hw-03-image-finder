@@ -8,6 +8,7 @@ const ImageGallery = ({ images, onClick }) => {
       {images.map(({ id, webformatURL, largeImageURL, tags }) => (
         <ImageGalleryItem
           key={id}
+          id={id}
           cardUrl={webformatURL}
           alt={tags}
           onClick={() => onClick(largeImageURL)}
@@ -19,8 +20,12 @@ const ImageGallery = ({ images, onClick }) => {
 
 
 ImageGallery.propTypes = {
-  images: PropTypes.arrayOf(PropTypes.object.isRequired),
-  onClick: PropTypes.func,
+  onClick: PropTypes.func.isRequired,
+  images: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+    })
+  ).isRequired,
 };
 
 export default ImageGallery;

@@ -3,9 +3,11 @@ import PropTypes from 'prop-types';
 import { Item, Image } from './ImageGalleryItem.styled';
 
 const ImageGalleryItem = ({ cardUrl, alt, onClick }) => (
+  
   <Item onClick={onClick}>
     <Image src={cardUrl} alt={alt} />
-  </Item>
+    </Item>
+
 );
 
 ImageGalleryItem.propTypes = {
